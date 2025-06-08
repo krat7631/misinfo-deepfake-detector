@@ -69,19 +69,6 @@ These are already excluded in `.gitignore`.
 
 ---
 
-## 🧠 Backend Repo
-
-The backend (FastAPI, ML models) is in a separate repository:
-[👉 View Backend Repo](https://github.com/yourusername/misinfo-detector-backend)
-
----
-
-## 📬 Contact
-
-Have questions or suggestions? Open an issue or email me at [you@example.com](mailto:you@example.com)
-
----
-
 ## 📄 License
 
 MIT License – Feel free to use, modify, and build on top of this.
