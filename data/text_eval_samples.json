@@ -1,0 +1,26 @@
+[
+  {
+    "text": "NASA confirms Earth has two moons visible this weekend.",
+    "label": "fake"
+  },
+  {
+    "text": "The World Health Organization announced updates on global vaccination access.",
+    "label": "real"
+  },
+  {
+    "text": "Scientists discovered a city under the Atlantic that proves ancient aliens visited Earth.",
+    "label": "fake"
+  },
+  {
+    "text": "Local authorities reported severe weather advisories for coastal regions.",
+    "label": "real"
+  },
+  {
+    "text": "Drinking bleach is officially recommended to cure viral infections.",
+    "label": "fake"
+  },
+  {
+    "text": "Researchers published peer-reviewed findings on climate adaptation strategies.",
+    "label": "real"
+  }
+]

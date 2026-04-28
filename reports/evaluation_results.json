@@ -1,0 +1,9 @@
+{
+  "note": "Run `make eval` to generate real metrics for your latest model and dataset.",
+  "samples": 0,
+  "labels": [],
+  "accuracy": 0.0,
+  "macro_f1": 0.0,
+  "classification_report": {},
+  "confusion_matrix": []
+}

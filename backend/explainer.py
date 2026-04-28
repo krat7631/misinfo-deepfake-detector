@@ -1,39 +1,44 @@
+import logging
 import os
-from openai import OpenAI
-from dotenv import load_dotenv
 
-# Load environment variables from .env
-load_dotenv()
+logger = logging.getLogger(__name__)
 
-# Load the API key
-api_key = os.getenv("OPENAI_API_KEY")
-client = OpenAI(api_key=api_key)
+def _get_client():
+    from dotenv import load_dotenv
+    from openai import OpenAI
+
+    load_dotenv()
+    api_key = os.getenv("OPENAI_API_KEY")
+    if not api_key:
+        raise RuntimeError("OpenAI API key not configured.")
+    return OpenAI(api_key=api_key)
 
 def explain_result(input_text: str) -> str:
-    if not api_key:
-        return "❌ Error: OpenAI API key not found. Please check your .env file."
-
-    print("Input to GPT (gpt-3.5-turbo):", input_text)
+    if not input_text or not input_text.strip():
+        return "No explanation available for empty input."
 
     prompt = (
         "You are a misinformation expert. "
         "Explain in simple terms why the following content may be misinformation:\n\n"
-        f"{input_text}"
+        f"{input_text.strip()}"
     )
 
     try:
+        client = _get_client()
+    except RuntimeError:
+        return "OpenAI explanation unavailable because OPENAI_API_KEY is not configured."
+
+    try:
         response = client.chat.completions.create(
-            model="gpt-3.5-turbo",  # ✅ Changed from gpt-4 to gpt-3.5-turbo
+            model=os.getenv("OPENAI_MODEL", "gpt-4o-mini"),
             messages=[{"role": "user", "content": prompt}],
-            temperature=0.7,
+            temperature=0.3,
             max_tokens=250,
         )
-        print("Raw OpenAI response:", response)
         return response.choices[0].message.content.strip()
-
-    except Exception as e:
-        print("❌ Error occurred in explain_result:", str(e))
-        return f"❌ Unexpected error: {str(e)}"
+    except Exception as exc:
+        logger.exception("OpenAI explanation failed")
+        return f"Explanation service unavailable: {exc}"
 
 # Test block
 if __name__ == "__main__":

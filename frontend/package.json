@@ -3,7 +3,8 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev --turbopack",
+    "dev": "sh -c 'mkdir -p .next && exec node --localstorage-file=\"$PWD/.next/dev-localstorage.json\" ./node_modules/next/dist/bin/next dev'",
+    "dev:turbo": "sh -c 'mkdir -p .next && exec node --localstorage-file=\"$PWD/.next/dev-localstorage.json\" ./node_modules/next/dist/bin/next dev --turbopack'",
     "build": "next build",
     "start": "next start",
     "lint": "next lint"

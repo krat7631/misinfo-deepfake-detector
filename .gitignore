@@ -1,12 +1,48 @@
-# Ignore environment variables
-.env
-
-# Python
+# Python cache and artifacts
 __pycache__/
-*.pyc
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+coverage.xml
+htmlcov/
 
-# Virtual environment
+# Virtual environments
 venv/
+venv311/
+.venv/
+env/
 
-# VS Code settings
+# Environment files and secrets
+.env
+.env.*
+!.env.example
+
+# OS / editor noise
+.DS_Store
+Thumbs.db
 .vscode/
+.idea/
+
+# Frontend build and dependency artifacts
+frontend/node_modules/
+frontend/.next/
+frontend/out/
+frontend/.turbo/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# General logs/temp
+*.log
+tmp/
+temp/
+
+# Local temp upload folders
+backend/temp/
+frontend/temp/
