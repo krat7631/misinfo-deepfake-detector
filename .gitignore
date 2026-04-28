@@ -46,3 +46,9 @@ temp/
 # Local temp upload folders
 backend/temp/
 frontend/temp/
+
+# Local model caches
+.hf_cache/
+
+# Local frontend env
+frontend/.env.local
