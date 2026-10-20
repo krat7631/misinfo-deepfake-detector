@@ -1,0 +1,179 @@
+{
+  "task": "binary synthetic-face classification on face crops (1 = fake, 0 = real)",
+  "base_model": "google/vit-base-patch16-224-in21k",
+  "datasets": {
+    "train_and_in_domain_test": "TheKernel01/140k-Real-and-Fake-Faces (real: FFHQ, fake: StyleGAN); one parquet shard per split",
+    "out_of_domain_test": "OpenRL/DeepFakeFace, 1,000 images per source from the same identity folders (real: IMDB-WIKI; fake: SD inpainting, InsightFace swap, SD text-to-image)"
+  },
+  "preprocessing": {
+    "face_detector": "OpenCV YuNet 2023mar",
+    "crop_margin": 1.4,
+    "crop_size": 224,
+    "low_res_eval_side": 64,
+    "train_augmentation": "random resized crop 0.85-1.0, horizontal flip, JPEG q55-95 (p=0.5), downscale 56-160px (p=0.3)"
+  },
+  "no_face_detected": {
+    "faces140k": {
+      "train": 0,
+      "val": 0,
+      "test": 0
+    },
+    "dff": {
+      "wiki": 13,
+      "inpainting": 15,
+      "insight": 19,
+      "text2img": 13
+    }
+  },
+  "split": {
+    "seed": 42,
+    "train": 16667,
+    "val": 1000,
+    "test": 5000
+  },
+  "hyperparameters": {
+    "epochs": 2,
+    "batch_size": 32,
+    "learning_rate": 3e-05,
+    "weight_decay": 0.05
+  },
+  "results": {
+    "faces140k_test_in_domain": {
+      "samples": 5000,
+      "accuracy": 0.9924,
+      "precision_fake": 0.9908,
+      "recall_fake": 0.994,
+      "f1_fake": 0.9924,
+      "roc_auc": 0.9996,
+      "confusion_matrix": [
+        [
+          2472,
+          23
+        ],
+        [
+          15,
+          2490
+        ]
+      ]
+    },
+    "dff_inpainting_ood": {
+      "samples": 1972,
+      "accuracy": 0.497,
+      "precision_fake": 0.4588,
+      "recall_fake": 0.0396,
+      "f1_fake": 0.0729,
+      "roc_auc": 0.4015,
+      "confusion_matrix": [
+        [
+          941,
+          46
+        ],
+        [
+          946,
+          39
+        ]
+      ]
+    },
+    "dff_inpainting_ood_low_res": {
+      "samples": 1972,
+      "accuracy": 0.4949,
+      "precision_fake": 0.4522,
+      "recall_fake": 0.0528,
+      "f1_fake": 0.0945,
+      "roc_auc": 0.4381,
+      "confusion_matrix": [
+        [
+          924,
+          63
+        ],
+        [
+          933,
+          52
+        ]
+      ]
+    },
+    "dff_insight_ood": {
+      "samples": 1968,
+      "accuracy": 0.5071,
+      "precision_fake": 0.5534,
+      "recall_fake": 0.0581,
+      "f1_fake": 0.1052,
+      "roc_auc": 0.484,
+      "confusion_matrix": [
+        [
+          941,
+          46
+        ],
+        [
+          924,
+          57
+        ]
+      ]
+    },
+    "dff_insight_ood_low_res": {
+      "samples": 1968,
+      "accuracy": 0.5005,
+      "precision_fake": 0.4919,
+      "recall_fake": 0.0622,
+      "f1_fake": 0.1104,
+      "roc_auc": 0.5241,
+      "confusion_matrix": [
+        [
+          924,
+          63
+        ],
+        [
+          920,
+          61
+        ]
+      ]
+    },
+    "dff_text2img_ood": {
+      "samples": 1974,
+      "accuracy": 0.4904,
+      "precision_fake": 0.3699,
+      "recall_fake": 0.0274,
+      "f1_fake": 0.0509,
+      "roc_auc": 0.2834,
+      "confusion_matrix": [
+        [
+          941,
+          46
+        ],
+        [
+          960,
+          27
+        ]
+      ]
+    },
+    "dff_text2img_ood_low_res": {
+      "samples": 1974,
+      "accuracy": 0.4833,
+      "precision_fake": 0.3226,
+      "recall_fake": 0.0304,
+      "f1_fake": 0.0556,
+      "roc_auc": 0.3364,
+      "confusion_matrix": [
+        [
+          924,
+          63
+        ],
+        [
+          957,
+          30
+        ]
+      ]
+    },
+    "dff_real_photos_flagged_fake_rate": 0.0466
+  },
+  "training_minutes": 26.0,
+  "total_minutes": 29.7,
+  "environment": {
+    "device": "mps",
+    "platform": "macOS-26.4.1-arm64-arm-64bit",
+    "python": "3.11.11",
+    "torch": "2.14.1",
+    "git_commit": "4a3c388"
+  },
+  "smoke_test": false
+}
