@@ -1,0 +1,120 @@
+{
+  "task": "binary fake-news classification (1 = fake, 0 = real)",
+  "base_model": "distilbert-base-uncased",
+  "datasets": {
+    "train_and_in_domain_test": "davanstrien/WELFake",
+    "out_of_domain_test": "chengxuphd/liar2 (test split; half-true excluded; pants-fire/false/barely-true = fake, mostly-true/true = real)"
+  },
+  "cleaning": {
+    "raw_rows": 72134,
+    "dropped_too_short": 55,
+    "dropped_duplicates": 8457,
+    "rows_after_cleaning": 63622
+  },
+  "split": {
+    "seed": 42,
+    "train_pool": 50897,
+    "train_used": 20000,
+    "val_used": 2000,
+    "test": 6363,
+    "liar2_test": 1925
+  },
+  "hyperparameters": {
+    "max_length": 256,
+    "epochs": 2,
+    "batch_size": 16,
+    "learning_rate": 2e-05
+  },
+  "results": {
+    "tfidf_logreg_baseline": {
+      "welfake_test": {
+        "samples": 6363,
+        "accuracy": 0.953,
+        "precision_fake": 0.9395,
+        "recall_fake": 0.958,
+        "f1_fake": 0.9487,
+        "macro_f1": 0.9527,
+        "roc_auc": 0.9898,
+        "confusion_matrix": [
+          [
+            3301,
+            178
+          ],
+          [
+            121,
+            2763
+          ]
+        ]
+      },
+      "liar2_test_ood": {
+        "samples": 1925,
+        "accuracy": 0.6764,
+        "precision_fake": 0.7,
+        "recall_fake": 0.9259,
+        "f1_fake": 0.7973,
+        "macro_f1": 0.4977,
+        "roc_auc": 0.6312,
+        "confusion_matrix": [
+          [
+            77,
+            525
+          ],
+          [
+            98,
+            1225
+          ]
+        ]
+      }
+    },
+    "distilbert": {
+      "welfake_test": {
+        "samples": 6363,
+        "accuracy": 0.9873,
+        "precision_fake": 0.9912,
+        "recall_fake": 0.9806,
+        "f1_fake": 0.9859,
+        "macro_f1": 0.9871,
+        "roc_auc": 0.9993,
+        "confusion_matrix": [
+          [
+            3454,
+            25
+          ],
+          [
+            56,
+            2828
+          ]
+        ]
+      },
+      "liar2_test_ood": {
+        "samples": 1925,
+        "accuracy": 0.521,
+        "precision_fake": 0.7561,
+        "recall_fake": 0.4475,
+        "f1_fake": 0.5622,
+        "macro_f1": 0.5168,
+        "roc_auc": 0.5743,
+        "confusion_matrix": [
+          [
+            411,
+            191
+          ],
+          [
+            731,
+            592
+          ]
+        ]
+      }
+    }
+  },
+  "training_minutes": 23.2,
+  "total_minutes": 24.7,
+  "environment": {
+    "device": "mps",
+    "platform": "macOS-26.4.1-arm64-arm-64bit",
+    "python": "3.11.11",
+    "torch": "2.14.1",
+    "git_commit": "4a3c388"
+  },
+  "smoke_test": false
+}
