@@ -52,3 +52,9 @@ frontend/temp/
 
 # Local frontend env
 frontend/.env.local
+
+# Trained model weights (published to the Hugging Face Hub, not git)
+models/
+
+# Local editor/agent tooling
+.claude/

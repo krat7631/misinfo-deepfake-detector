@@ -1,48 +1,40 @@
+"""Optional plain-language summary from an LLM.
+
+Disabled unless OPENAI_API_KEY is set. The classifier's verdict and the SHAP attributions
+never depend on it; it only rephrases why a text might be misleading.
+"""
+
 import logging
-import os
+
+from .config import OPENAI_API_KEY, OPENAI_MODEL
 
 logger = logging.getLogger(__name__)
 
-def _get_client():
-    from dotenv import load_dotenv
-    from openai import OpenAI
 
-    load_dotenv()
-    api_key = os.getenv("OPENAI_API_KEY")
-    if not api_key:
-        raise RuntimeError("OpenAI API key not configured.")
-    return OpenAI(api_key=api_key)
+def llm_explanations_enabled() -> bool:
+    return bool(OPENAI_API_KEY)
+
 
 def explain_result(input_text: str) -> str:
     if not input_text or not input_text.strip():
         return "No explanation available for empty input."
 
+    from openai import OpenAI
+
     prompt = (
-        "You are a misinformation expert. "
-        "Explain in simple terms why the following content may be misinformation:\n\n"
-        f"{input_text.strip()}"
+        "You are a careful fact-checking assistant. In three sentences or fewer, point out "
+        "features of the following text that commonly appear in misinformation (sourcing, "
+        "emotive framing, unverifiable claims). Do not state whether it is true.\n\n"
+        f"{input_text.strip()[:4000]}"
     )
-
     try:
-        client = _get_client()
-    except RuntimeError:
-        return "OpenAI explanation unavailable because OPENAI_API_KEY is not configured."
-
-    try:
-        response = client.chat.completions.create(
-            model=os.getenv("OPENAI_MODEL", "gpt-4o-mini"),
+        response = OpenAI(api_key=OPENAI_API_KEY).chat.completions.create(
+            model=OPENAI_MODEL,
             messages=[{"role": "user", "content": prompt}],
             temperature=0.3,
-            max_tokens=250,
+            max_tokens=200,
         )
         return response.choices[0].message.content.strip()
-    except Exception as exc:
+    except Exception:
         logger.exception("OpenAI explanation failed")
-        return f"Explanation service unavailable: {exc}"
-
-# Test block
-if __name__ == "__main__":
-    sample_text = "The COVID-19 vaccine implants microchips in people."
-    explanation = explain_result(sample_text)
-    print("🧠 GPT Explanation:\n", explanation)
-
+        return "Explanation service unavailable."

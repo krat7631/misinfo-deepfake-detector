@@ -1,22 +1,28 @@
 PYTHON ?= python3
+TORCH_CPU = --extra-index-url https://download.pytorch.org/whl/cpu
 
-.PHONY: install test lint format run-backend eval
+.PHONY: install install-train test lint format run-backend train-text train-image
 
 install:
-	$(PYTHON) -m pip install -r requirements.txt
-	$(PYTHON) -m pip install pytest ruff pip-audit
+	$(PYTHON) -m pip install -r requirements-dev.txt $(TORCH_CPU)
+
+install-train:
+	$(PYTHON) -m pip install -r requirements-train.txt
 
 test:
-	pytest -q
+	$(PYTHON) -m pytest -q
 
 lint:
-	ruff check .
+	$(PYTHON) -m ruff check .
 
 format:
-	ruff check . --fix
+	$(PYTHON) -m ruff check . --fix
 
 run-backend:
-	uvicorn backend.main:app --reload --host 0.0.0.0 --port 8000
+	$(PYTHON) -m uvicorn backend.main:app --reload --host 0.0.0.0 --port 8000
 
-eval:
-	$(PYTHON) scripts/evaluate_text_detector.py --output reports/evaluation_results.json
+train-text:
+	$(PYTHON) training/train_text_model.py
+
+train-image:
+	$(PYTHON) training/train_image_model.py
