@@ -1,0 +1,190 @@
+{
+  "task": "binary synthetic-face classification on face crops (1 = fake, 0 = real)",
+  "base_model": "google/vit-base-patch16-224-in21k",
+  "datasets": {
+    "faces140k": "TheKernel01/140k-Real-and-Fake-Faces (real: FFHQ, fake: StyleGAN); one parquet shard per split",
+    "dff_train": "OpenRL/DeepFakeFace identity folders 10-29 (real: IMDB-WIKI; fake: SD inpainting, InsightFace swap)",
+    "dff_test": "OpenRL/DeepFakeFace identity folders 00-03, 1,000 images per source; people never seen in training (real: IMDB-WIKI; fake: SD inpainting, InsightFace swap, SD text-to-image)"
+  },
+  "generators_seen_in_training": [
+    "StyleGAN",
+    "inpainting",
+    "insight"
+  ],
+  "preprocessing": {
+    "face_detector": "OpenCV YuNet 2023mar",
+    "crop_margin": 1.4,
+    "crop_size": 224,
+    "low_res_eval_side": 64,
+    "train_augmentation": "random resized crop 0.85-1.0, horizontal flip, JPEG q55-95 (p=0.5), downscale 56-160px (p=0.3)"
+  },
+  "no_face_detected": {
+    "faces140k": {
+      "train": 0,
+      "val": 0,
+      "test": 0
+    },
+    "dff_test": {
+      "wiki": 13,
+      "inpainting": 15,
+      "insight": 19,
+      "text2img": 13
+    },
+    "dff_train": {
+      "wiki": 66,
+      "inpainting": 43,
+      "insight": 44
+    }
+  },
+  "split": {
+    "seed": 42,
+    "train": 22697,
+    "val": 2188,
+    "test": 5000
+  },
+  "hyperparameters": {
+    "epochs": 2,
+    "batch_size": 32,
+    "learning_rate": 3e-05,
+    "weight_decay": 0.05
+  },
+  "results": {
+    "faces140k_test": {
+      "samples": 5000,
+      "accuracy": 0.9858,
+      "precision_fake": 0.9899,
+      "recall_fake": 0.9816,
+      "f1_fake": 0.9858,
+      "roc_auc": 0.9991,
+      "confusion_matrix": [
+        [
+          2470,
+          25
+        ],
+        [
+          46,
+          2459
+        ]
+      ]
+    },
+    "dff_inpainting": {
+      "samples": 1972,
+      "accuracy": 0.9351,
+      "precision_fake": 0.9554,
+      "recall_fake": 0.9127,
+      "f1_fake": 0.9335,
+      "roc_auc": 0.9837,
+      "confusion_matrix": [
+        [
+          945,
+          42
+        ],
+        [
+          86,
+          899
+        ]
+      ]
+    },
+    "dff_inpainting_low_res": {
+      "samples": 1972,
+      "accuracy": 0.9026,
+      "precision_fake": 0.944,
+      "recall_fake": 0.8558,
+      "f1_fake": 0.8978,
+      "roc_auc": 0.9674,
+      "confusion_matrix": [
+        [
+          937,
+          50
+        ],
+        [
+          142,
+          843
+        ]
+      ]
+    },
+    "dff_insight": {
+      "samples": 1968,
+      "accuracy": 0.9258,
+      "precision_fake": 0.9543,
+      "recall_fake": 0.894,
+      "f1_fake": 0.9232,
+      "roc_auc": 0.9787,
+      "confusion_matrix": [
+        [
+          945,
+          42
+        ],
+        [
+          104,
+          877
+        ]
+      ]
+    },
+    "dff_insight_low_res": {
+      "samples": 1968,
+      "accuracy": 0.8694,
+      "precision_fake": 0.9393,
+      "recall_fake": 0.789,
+      "f1_fake": 0.8576,
+      "roc_auc": 0.9507,
+      "confusion_matrix": [
+        [
+          937,
+          50
+        ],
+        [
+          207,
+          774
+        ]
+      ]
+    },
+    "dff_text2img": {
+      "samples": 1974,
+      "accuracy": 0.7756,
+      "precision_fake": 0.9331,
+      "recall_fake": 0.5937,
+      "f1_fake": 0.7257,
+      "roc_auc": 0.8969,
+      "confusion_matrix": [
+        [
+          945,
+          42
+        ],
+        [
+          401,
+          586
+        ]
+      ]
+    },
+    "dff_text2img_low_res": {
+      "samples": 1974,
+      "accuracy": 0.7406,
+      "precision_fake": 0.913,
+      "recall_fake": 0.5319,
+      "f1_fake": 0.6722,
+      "roc_auc": 0.8648,
+      "confusion_matrix": [
+        [
+          937,
+          50
+        ],
+        [
+          462,
+          525
+        ]
+      ]
+    },
+    "dff_real_photos_flagged_fake_rate": 0.0426
+  },
+  "training_minutes": 35.1,
+  "total_minutes": 39.6,
+  "environment": {
+    "device": "mps",
+    "platform": "macOS-26.4.1-arm64-arm-64bit",
+    "python": "3.11.11",
+    "torch": "2.14.1",
+    "git_commit": "4a3c388"
+  },
+  "smoke_test": false
+}

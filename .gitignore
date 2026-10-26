@@ -52,3 +52,6 @@ frontend/temp/
 
 # Local frontend env
 frontend/.env.local
+
+# Trained model weights (too large for git; see "Run it locally" in the README)
+models/

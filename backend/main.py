@@ -1,3 +1,6 @@
+import json
+import logging
+import os
 from pathlib import Path
 from tempfile import NamedTemporaryFile
 from uuid import uuid4
@@ -5,22 +8,17 @@ from uuid import uuid4
 from fastapi import FastAPI, File, Form, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 
-try:
-    from .explainer import explain_result
-    from .image_detector import analyze_image
-    from .text_detector import analyze_text
-    from .video_detector import analyze_video
-except ImportError:
-    from explainer import explain_result
-    from image_detector import analyze_image
-    from text_detector import analyze_text
-    from video_detector import analyze_video
-import logging
-import os
+from .config import REPORTS_DIR
+from .explainer import explain_result, llm_explanations_enabled
+from .image_detector import NoFaceError, analyze_image
+from .text_detector import analyze_text
+from .text_explainer import explain_text
+from .video_detector import analyze_video
 
 logger = logging.getLogger(__name__)
 
 MAX_UPLOAD_BYTES = int(os.getenv("MAX_UPLOAD_BYTES", str(25 * 1024 * 1024)))
+MAX_TEXT_CHARS = 20_000
 UPLOAD_DIR = Path(os.getenv("UPLOAD_DIR", "backend/temp"))
 ALLOWED_IMAGE_EXTENSIONS = {".jpg", ".jpeg", ".png", ".webp"}
 ALLOWED_VIDEO_EXTENSIONS = {".mp4", ".mov", ".avi", ".mkv", ".webm"}
@@ -31,18 +29,17 @@ ALLOWED_ORIGINS = [
     if origin.strip()
 ]
 
-app = FastAPI()
-if UPLOAD_DIR.exists() and not UPLOAD_DIR.is_dir():
-    UPLOAD_DIR = Path("backend/temp_uploads")
+app = FastAPI(title="Misinformation & Deepfake Detector", version="2.0.0")
 UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
 
 app.add_middleware(
     CORSMiddleware,
     allow_origins=ALLOWED_ORIGINS,
-    allow_credentials=True,
+    allow_credentials=False,
     allow_methods=["POST", "GET"],
-    allow_headers=["Content-Type", "Authorization"],
+    allow_headers=["Content-Type"],
 )
+
 
 def _safe_suffix(filename: str) -> str:
     suffix = Path(filename or "").suffix.lower()
@@ -83,51 +80,64 @@ async def _save_upload_to_temp(upload_file: UploadFile, suffix: str) -> Path:
     return Path(tmp.name)
 
 
+def _run_media_analysis(analyze, file_path: Path, media_type: str) -> dict:
+    try:
+        return analyze(str(file_path))
+    except NoFaceError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    except RuntimeError as exc:
+        logger.exception("%s analysis runtime failure", media_type)
+        raise HTTPException(status_code=500, detail=f"{media_type.capitalize()} analysis failed.") from exc
+    finally:
+        file_path.unlink(missing_ok=True)
+
+
 @app.get("/health")
 async def healthcheck():
     return {"status": "ok"}
 
 
+@app.get("/model-card")
+async def model_card():
+    """Evaluation results committed in reports/, so the UI can show real numbers."""
+    cards = {}
+    for name in ("text_model_report", "image_model_report"):
+        path = REPORTS_DIR / f"{name}.json"
+        if path.exists():
+            report = json.loads(path.read_text())
+            cards[name] = {"base_model": report["base_model"], "datasets": report["datasets"],
+                           "results": report["results"],
+                           "generators_seen_in_training": report.get("generators_seen_in_training")}
+    return {"models": cards, "llm_explanations_enabled": llm_explanations_enabled()}
+
+
 @app.post("/analyze-text")
-async def analyze_text_endpoint(text: str = Form(...)):
+async def analyze_text_endpoint(text: str = Form(...), skip_explanation: bool = Form(False)):
+    # Form booleans follow checkbox semantics (absent = False), so the opt-out is the flag.
     if not text.strip():
         raise HTTPException(status_code=400, detail="Text cannot be empty.")
-    result = analyze_text(text)
-    explanation = explain_result(text)
-    return {
-        "result": result,
-        "explanation": explanation
-    }
+    if len(text) > MAX_TEXT_CHARS:
+        raise HTTPException(status_code=413, detail=f"Text is limited to {MAX_TEXT_CHARS} characters.")
+
+    response = {"result": analyze_text(text)}
+    if not skip_explanation:
+        response["attribution"] = explain_text(text)
+    if llm_explanations_enabled():
+        response["explanation"] = explain_result(text)
+    return response
 
 
 @app.post("/analyze-image")
 async def analyze_image_endpoint(file: UploadFile = File(...)):
     suffix = _validate_extension(file.filename, ALLOWED_IMAGE_EXTENSIONS, "image")
     file_path = await _save_upload_to_temp(file, suffix)
-
-    try:
-        return analyze_image(str(file_path))
-    except ValueError as exc:
-        raise HTTPException(status_code=400, detail=str(exc)) from exc
-    except RuntimeError as exc:
-        logger.exception("Image analysis runtime failure")
-        raise HTTPException(status_code=500, detail="Image analysis failed.") from exc
-    finally:
-        file_path.unlink(missing_ok=True)
+    return _run_media_analysis(analyze_image, file_path, "image")
 
 
 @app.post("/analyze-video")
 async def analyze_video_endpoint(file: UploadFile = File(...)):
     suffix = _validate_extension(file.filename, ALLOWED_VIDEO_EXTENSIONS, "video")
     file_path = await _save_upload_to_temp(file, suffix)
-
-    try:
-        return analyze_video(str(file_path))
-    except ValueError as exc:
-        raise HTTPException(status_code=400, detail=str(exc)) from exc
-    except RuntimeError as exc:
-        logger.exception("Video analysis runtime failure")
-        raise HTTPException(status_code=500, detail="Video analysis failed.") from exc
-    finally:
-        file_path.unlink(missing_ok=True)
-
+    return _run_media_analysis(analyze_video, file_path, "video")
