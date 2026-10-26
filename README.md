@@ -136,7 +136,8 @@ cd frontend && npm install && cp .env.example .env.local && npm run dev   # http
 ```
 
 The API loads models from `models/` by default (set `TEXT_MODEL` / `IMAGE_MODEL` to a local folder or a
-Hugging Face Hub id). To produce them yourself:
+Hugging Face Hub id). The trained weights are not hosted online yet; they will be published on the Hugging Face
+Hub. Until then, train them yourself:
 
 ```bash
 make install-train
