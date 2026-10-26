@@ -10,10 +10,10 @@ pillow==13.0.0
 opencv-python-headless==5.0.0.93
 torch==2.14.1
 torchvision==0.29.1
-transformers==4.57.6
-tokenizers==0.22.2
+transformers==5.19.0
+tokenizers==0.23.2
 safetensors==0.8.0
-huggingface_hub==0.36.2
+huggingface_hub==1.33.0
 shap==0.51.0
 # Optional: plain-language summaries when OPENAI_API_KEY is set.
 openai==3.35.1

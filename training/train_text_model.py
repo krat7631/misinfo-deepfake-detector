@@ -198,7 +198,7 @@ def main() -> None:
         per_device_eval_batch_size=args.batch_size * 2,
         learning_rate=args.learning_rate,
         weight_decay=0.01,
-        warmup_ratio=0.06,
+        warmup_steps=0.06,  # a fraction of total steps (transformers 5 merged warmup_ratio into this)
         eval_strategy="epoch",
         save_strategy="epoch",
         save_total_limit=1,
